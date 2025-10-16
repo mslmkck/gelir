@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Enumerated values (emulated via CHECK constraints in migrations and constants)
+/// CURRENCY: USD, EUR, GBP, CAD, AUD
+/// INVOICE_STATUS: DRAFT, SENT, PARTIALLY_PAID, PAID, OVERDUE, CANCELED
+/// PAYMENT_METHOD: BANK_TRANSFER, CARD, CASH, CHECK, ACH, OTHER
+/// EXPENSE_CATEGORY: OPERATIONS, MARKETING, PAYROLL, SOFTWARE, TRAVEL, OTHER
+/// INCOME_TYPE: PRODUCT, SERVICE, SUBSCRIPTION, CONSULTING, OTHER
+model Invoice {
+  id             Int       @id @default(autoincrement())
+  number         String    @unique
+  customerName   String
+  currency       String    @default("USD")
+  status         String    @default("DRAFT")
+  issuedAt       DateTime
+  dueAt          DateTime?
+  subtotal       Decimal
+  taxRate        Decimal   @default(0)
+  taxAmount      Decimal   @default(dbgenerated("(subtotal * taxRate / 100.0)"))
+  totalAmount    Decimal   @default(dbgenerated("(subtotal + (subtotal * taxRate / 100.0))"))
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  incomes        Income[]
+  credits        Credit[]
+  payments       Payment[]
+
+  @@index([status, dueAt])
+}
+
+model Income {
+  id          Int      @id @default(autoincrement())
+  description String
+  type        String   @default("OTHER")
+  source      String?
+  currency    String   @default("USD")
+  grossAmount Decimal
+  fee         Decimal? @default(0)
+  netAmount   Decimal  @default(dbgenerated("(grossAmount - IFNULL(fee, 0))"))
+  receivedAt  DateTime
+  invoiceId   Int?
+  paymentId   Int?     @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  invoice     Invoice? @relation(fields: [invoiceId], references: [id])
+  payment     Payment? @relation(fields: [paymentId], references: [id])
+
+  @@index([type, receivedAt])
+}
+
+model Expense {
+  id            Int       @id @default(autoincrement())
+  vendor        String
+  description   String?
+  category      String    @default("OTHER")
+  currency      String    @default("USD")
+  amount        Decimal
+  taxAmount     Decimal?  @default(0)
+  totalWithTax  Decimal   @default(dbgenerated("(amount + IFNULL(taxAmount, 0))"))
+  incurredAt    DateTime
+  paidAt        DateTime?
+  paymentMethod String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([category, incurredAt])
+}
+
+model Credit {
+  id         Int      @id @default(autoincrement())
+  invoiceId  Int
+  amount     Decimal
+  currency   String   @default("USD")
+  reason     String?
+  issuedAt   DateTime @default(now())
+  expiresAt  DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  invoice    Invoice  @relation(fields: [invoiceId], references: [id])
+
+  @@index([invoiceId, expiresAt])
+}
+
+model Payment {
+  id          Int      @id @default(autoincrement())
+  invoiceId   Int
+  amount      Decimal
+  currency    String   @default("USD")
+  method      String
+  reference   String?
+  receivedAt  DateTime @default(now())
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id])
+  income      Income?
+
+  @@index([invoiceId, receivedAt])
+}
