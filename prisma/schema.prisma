@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  BANK_TRANSFER
+  OTHER
+}
+
+model Income {
+  id         Int      @id @default(autoincrement())
+  amount     Float
+  source     String
+  receivedAt DateTime
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Expense {
+  id         Int      @id @default(autoincrement())
+  amount     Float
+  category   String
+  vendor     String
+  incurredAt DateTime
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Invoice {
+  id          Int            @id @default(autoincrement())
+  number      String         @unique
+  client      String
+  amount      Float
+  status      InvoiceStatus  @default(PENDING)
+  issuedAt    DateTime
+  dueAt       DateTime
+  description String?
+  credits     Credit[]
+  payments    Payment[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model Credit {
+  id        Int      @id @default(autoincrement())
+  amount    Float
+  reason    String
+  issuedAt  DateTime
+  invoiceId Int?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Payment {
+  id        Int           @id @default(autoincrement())
+  amount    Float
+  method    PaymentMethod
+  receivedAt DateTime
+  reference String?
+  invoiceId Int?
+  invoice   Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
