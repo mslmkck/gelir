@@ -10,6 +10,7 @@ A production-ready Next.js 14 application with TypeScript, TailwindCSS, Headless
 - **Headless UI** for accessible, unstyled UI components
 - **Responsive Layout** with navigation and sidebar
 - **Comprehensive UI Primitives** ready for use
+- **Installable Progressive Web App** with offline caching, dictionary data, and update notifications
 - **ESLint** and **Prettier** for code quality
 - **Husky** and **lint-staged** for pre-commit hooks
 
@@ -88,15 +89,20 @@ npm start
 ```
 .
 ├── app/                    # Next.js App Router
+│   ├── api/dictionary/    # Offline-ready dictionary API
 │   ├── fonts/             # Local fonts
 │   ├── globals.css        # Global styles and CSS variables
 │   ├── layout.tsx         # Root layout
+│   ├── manifest.ts        # PWA manifest definition
+│   ├── offline/           # Offline fallback route
 │   └── page.tsx           # Home page
 ├── components/            # React components
+│   ├── home/             # Lazy loaded homepage sections
 │   ├── layout/           # Layout components
 │   │   ├── AppLayout.tsx
 │   │   ├── Navigation.tsx
 │   │   └── Sidebar.tsx
+│   ├── pwa/              # Install prompts and update notifications
 │   └── ui/               # UI primitives
 │       ├── Button.tsx
 │       ├── Card.tsx
@@ -104,6 +110,9 @@ npm start
 │       ├── Input.tsx
 │       ├── Select.tsx
 │       └── Textarea.tsx
+├── public/               # Static assets, manifest icons, service worker
+│   ├── icons/
+│   └── service-worker.js
 ├── .husky/               # Git hooks
 ├── tailwind.config.ts    # TailwindCSS configuration
 ├── tsconfig.json         # TypeScript configuration
@@ -111,6 +120,25 @@ npm start
 ├── .prettierrc           # Prettier configuration
 └── package.json          # Dependencies and scripts
 ```
+
+## 📱 Progressive Web App
+
+### Offline experience
+
+- `/public/service-worker.js` caches the application shell, `/offline` route, and the dictionary API for use without a network connection.
+- `/app/offline` provides a branded fallback view that keeps users informed when the network is unavailable.
+- Critical assets such as icons, fonts, and the manifest are precached so reloads remain fast.
+
+### Installation & updates
+
+- Users receive an install banner surfaced by `components/pwa/PWAProvider`, which listens for the `beforeinstallprompt` event.
+- The provider also surfaces update notifications that call `postMessage({ type: "SKIP_WAITING" })` on the waiting worker and refresh the page once the new version is active.
+- Additional metadata in `app/layout.tsx` (manifest, theme colors, prefetch hints) ensures the app passes Lighthouse PWA checks.
+
+### Testing & maintenance
+
+- Service worker registration logic is covered by `tests/unit/serviceWorkerRegistration.test.ts`.
+- Run `npm run test` to execute the Vitest suite, including the new unit tests and existing integration tests.
 
 ## 🎯 Usage Examples
 

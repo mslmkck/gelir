@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -27,6 +27,29 @@ const navigation = [
 
 export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (isOpen && closeButtonRef.current) {
+      closeButtonRef.current.focus();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose?.();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
 
   return (
     <>
@@ -34,11 +57,13 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         <div
           className="fixed inset-0 bg-neutral-900/50 z-40 lg:hidden"
           onClick={onClose}
+          role="presentation"
           aria-hidden="true"
         />
       )}
 
       <aside
+        id="primary-sidebar"
         className={`
           fixed lg:static inset-y-0 left-0 z-50
           w-64 bg-white dark:bg-neutral-900 
@@ -46,19 +71,25 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           transform transition-transform duration-200 ease-in-out
           ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
+        role="complementary"
+        aria-label="Primary"
+        tabIndex={-1}
       >
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-700 lg:hidden">
             <span className="text-xl font-bold text-neutral-900 dark:text-neutral-100">Menu</span>
             <button
+              ref={closeButtonRef}
+              type="button"
               onClick={onClose}
+              aria-label="Close navigation menu"
               className="p-2 rounded-lg text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             >
               <XMarkIcon className="h-6 w-6" />
             </button>
           </div>
 
-          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto" aria-label="Primary links">
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               return (

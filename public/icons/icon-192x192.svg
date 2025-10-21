@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-labelledby="title desc">
+  <title id="title">Modern App Icon</title>
+  <desc id="desc">Rounded gradient square with the letter M.</desc>
+  <defs>
+    <linearGradient id="gradient192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#22d3ee" />
+    </linearGradient>
+  </defs>
+  <rect width="176" height="176" x="8" y="8" rx="40" fill="url(#gradient192)" />
+  <path
+    d="M64 134V58h16l16 32 16-32h16v76h-16V96l-16 32-16-32v38H64z"
+    fill="#f8fafc"
+    aria-hidden="true"
+  />
+</svg>
