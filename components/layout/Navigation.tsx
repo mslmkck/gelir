@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Fragment } from "react";
+import React, { Fragment, type RefObject } from "react";
 import Link from "next/link";
 import { Menu, Transition } from "@headlessui/react";
 import {
@@ -13,17 +13,32 @@ import {
 interface NavigationProps {
   onMenuClick?: () => void;
   showMenuButton?: boolean;
+  menuButtonRef?: RefObject<HTMLButtonElement>;
+  isSidebarOpen?: boolean;
 }
 
-export default function Navigation({ onMenuClick, showMenuButton = true }: NavigationProps) {
+export default function Navigation({
+  onMenuClick,
+  showMenuButton = true,
+  menuButtonRef,
+  isSidebarOpen = false,
+}: NavigationProps) {
   return (
-    <nav className="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-700 sticky top-0 z-40">
+    <nav
+      className="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-700 sticky top-0 z-40"
+      aria-label="Primary navigation"
+    >
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-4">
             {showMenuButton && (
               <button
+                ref={menuButtonRef}
+                type="button"
                 onClick={onMenuClick}
+                aria-controls="primary-sidebar"
+                aria-expanded={isSidebarOpen}
+                aria-label="Toggle navigation menu"
                 className="lg:hidden p-2 rounded-lg text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               >
                 <Bars3Icon className="h-6 w-6" />
@@ -35,13 +50,14 @@ export default function Navigation({ onMenuClick, showMenuButton = true }: Navig
             </Link>
           </div>
 
-          <div className="hidden md:flex flex-1 max-w-md mx-8">
+          <div className="hidden md:flex flex-1 max-w-md mx-8" role="search">
             <div className="relative w-full">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <MagnifyingGlassIcon className="h-5 w-5 text-neutral-400" />
               </div>
               <input
                 type="text"
+                aria-label="Search the app"
                 placeholder="Search..."
                 className="block w-full pl-10 pr-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
               />
@@ -49,12 +65,20 @@ export default function Navigation({ onMenuClick, showMenuButton = true }: Navig
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="p-2 rounded-lg text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
+            <button
+              type="button"
+              aria-label="View notifications"
+              className="p-2 rounded-lg text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            >
               <BellIcon className="h-6 w-6" />
             </button>
 
             <Menu as="div" className="relative">
-              <Menu.Button className="p-2 rounded-lg text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
+              <Menu.Button
+                type="button"
+                aria-label="Account menu"
+                className="p-2 rounded-lg text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              >
                 <UserCircleIcon className="h-6 w-6" />
               </Menu.Button>
               <Transition

@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { AppLayout } from "@/components/layout";
 import {
   Badge,
@@ -9,12 +10,35 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-  CardFooter,
   Input,
-  Textarea,
   Select,
   Checkbox,
 } from "@/components/ui";
+
+const SectionSkeleton = ({ title, description }: { title: string; description: string }) => (
+  <Card variant="bordered" aria-busy="true" aria-live="polite">
+    <CardHeader>
+      <CardTitle>{title}</CardTitle>
+      <CardDescription>{description}</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <div className="h-32 w-full animate-pulse rounded-xl bg-neutral-200/70 dark:bg-neutral-800/70" />
+    </CardContent>
+  </Card>
+);
+
+const ContactFormSection = dynamic(() => import("@/components/home/ContactFormSection"), {
+  loading: () => (
+    <SectionSkeleton title="Contact Form" description="Preparing the contact tools…" />
+  ),
+});
+
+const DictionarySection = dynamic(() => import("@/components/home/DictionarySection"), {
+  ssr: false,
+  loading: () => (
+    <SectionSkeleton title="PWA Dictionary" description="Loading the offline glossary…" />
+  ),
+});
 
 export default function Home() {
   return (
@@ -181,34 +205,10 @@ export default function Home() {
           </Card>
         </div>
 
-        <Card variant="bordered">
-          <CardHeader>
-            <CardTitle>Contact Form</CardTitle>
-            <CardDescription>Send us a message</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input label="First Name" placeholder="John" fullWidth />
-                <Input label="Last Name" placeholder="Doe" fullWidth />
-              </div>
-              <Input label="Email" type="email" placeholder="john.doe@example.com" fullWidth />
-              <Textarea
-                label="Message"
-                placeholder="Tell us what you think..."
-                rows={4}
-                fullWidth
-              />
-              <Checkbox label="Subscribe to newsletter" />
-            </div>
-          </CardContent>
-          <CardFooter>
-            <div className="flex justify-end gap-3">
-              <Button variant="outline">Cancel</Button>
-              <Button variant="primary">Send Message</Button>
-            </div>
-          </CardFooter>
-        </Card>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <DictionarySection />
+          <ContactFormSection />
+        </div>
       </div>
     </AppLayout>
   );
